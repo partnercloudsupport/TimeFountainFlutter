@@ -1,7 +1,7 @@
 import './colorConfigurationDTO.dart';
 
 class ProfileDTO {
-  ProfileDTO(this.colorConfigurationDTO);
-  
-  List<ColorConfigurationDTO> colorConfigurationDTO;
+  ProfileDTO();
+
+  List<ColorConfigurationDTO> colorConfigurationDTO = [];
 }

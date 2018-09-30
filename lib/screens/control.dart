@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 import '../model/timeFountainDTO.dart';
+import '../model/profileDTO.dart';
 import './profileEditor.dart';
 
 class ControlScreen extends StatefulWidget {
@@ -25,10 +26,12 @@ class ControlState extends State<ControlScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-            title:
-                Text(device.name.length > 0 ? device.name : 'Unnamed Device')),
-        body: _buildBody());
+      appBar: AppBar(
+          title: Text(device.name.length > 0 ? device.name : 'Unnamed Device')),
+      body: _buildBody(),
+      floatingActionButton:
+          FloatingActionButton(onPressed: _addProfile, child: Icon(Icons.add)),
+    );
   }
 
   Widget _buildBody() {
@@ -67,11 +70,14 @@ class ControlState extends State<ControlScreen> {
         if (i.isOdd) return Divider();
 
         final index = i ~/ 2;
-        if (index >= timeFountainDTO.profiles.length && index >= 2) {
+        if (index >= timeFountainDTO.profiles.length) {
           return null;
         }
         return ListTile(
-          title: Text('Profile ${index + 1}', style: index == timeFountainDTO.activeProfile ? _boldFont : TextStyle()),
+          title: Text(index == 0 ? 'Default Profile' : 'Profile $index',
+              style: index == timeFountainDTO.activeProfile
+                  ? _boldFont
+                  : TextStyle()),
           onTap: () {
             _editProfile(context, index);
           },
@@ -89,8 +95,18 @@ class ControlState extends State<ControlScreen> {
     });
   }
 
+  void _addProfile() {
+    setState(() {
+      timeFountainDTO.profiles.add(ProfileDTO());
+    });
+  }
+
   void _editProfile(BuildContext context, int index) {
-    Navigator.push(context, MaterialPageRoute(builder: (context) => ProfileEditorScreen(device, timeFountainDTO, index)));
+    Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (context) =>
+                ProfileEditorScreen(device, timeFountainDTO, index)));
   }
 
   void _makeProfileActive(int index) {

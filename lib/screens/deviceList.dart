@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_blue/flutter_blue.dart';
+import './control.dart';
 
 FlutterBlue flutterBlue = FlutterBlue.instance;
 
@@ -13,12 +14,13 @@ class DeviceListState extends State<DeviceListScreen>
   final _devices = <BluetoothDevice>[];
   final _biggerFont = const TextStyle(fontSize: 18.0);
   final _smallerFont = const TextStyle(fontSize: 12.0);
-  var scanSubscription;
+  var _scanSubscription;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _startListening();
   }
 
   @override
@@ -42,40 +44,41 @@ class DeviceListState extends State<DeviceListScreen>
         if (index >= _devices.length) {
           return null;
         }
-        return _buildRow(_devices[index]);
+        return _buildRow(context, _devices[index]);
       },
     );
   }
 
-  Widget _buildRow(BluetoothDevice device) {
-    return Padding(
-        padding: EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            Text(
-              device.name.length > 0 ? device.name : 'Unknown Device',
-              style: _biggerFont,
-            ),
-            Text(
-              device.id.id,
-              style: _smallerFont,
-            ),
-          ],
-        ));
+  Widget _buildRow(BuildContext context, BluetoothDevice device) {
+    return ListTile(
+      title: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Text(
+            device.name.length > 0 ? device.name : 'Unnamed Device',
+            style: _biggerFont,
+          ),
+          Text(
+            device.id.id,
+            style: _smallerFont,
+          ),
+        ],
+      ),
+      onTap: () {
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => ControlScreen(device)));
+      },
+    );
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      scanSubscription = flutterBlue.scan().listen(_scanListener);
+      _startListening();
     } else if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.suspending ||
         state == AppLifecycleState.inactive) {
-      if (scanSubscription != null) {
-        scanSubscription.cancel();
-      }
-      scanSubscription = null;
+      _stopListening();
     }
   }
 
@@ -83,7 +86,22 @@ class DeviceListState extends State<DeviceListScreen>
     if (!_devices.any((device) {
       return device.id.id == scanResult.device.id.id;
     })) {
-      _devices.add(scanResult.device);
+      setState(() {
+        _devices.add(scanResult.device);
+      });
     }
+  }
+
+  void _startListening() {
+    if (_scanSubscription == null) {
+      _scanSubscription = flutterBlue.scan().listen(_scanListener);
+    }
+  }
+
+  void _stopListening() {
+    if (_scanSubscription != null) {
+      _scanSubscription.cancel();
+    }
+    _scanSubscription = null;
   }
 }

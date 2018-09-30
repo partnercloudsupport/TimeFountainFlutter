@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'screens/control.dart';
 import 'screens/deviceList.dart';
 
 void main() {
@@ -9,8 +8,10 @@ void main() {
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(title: 'TimeFountain',
-    home: DeviceListScreen(),
+    return MaterialApp(
+      theme: ThemeData(primaryColor: Colors.blue),
+      title: 'TimeFountain',
+      home: DeviceListScreen(),
     );
   }
 }

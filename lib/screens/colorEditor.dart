@@ -13,9 +13,7 @@ class ColorState extends State<ColorEditorScreen> {
   ColorConfigurationDTO colorConfigurationCopy;
   ColorState(this.colorConfiguration)
       : colorConfigurationCopy = new ColorConfigurationDTO(
-            colorConfiguration.red,
-            colorConfiguration.green,
-            colorConfiguration.blue,
+            colorConfiguration.color,
             colorConfiguration.frequencyDelta,
             colorConfiguration.offset,
             colorConfiguration.amplitude,
@@ -34,11 +32,7 @@ class ColorState extends State<ColorEditorScreen> {
                 Expanded(
                     child: Container(
                   height: 32.0,
-                  color: Color.fromARGB(
-                      255,
-                      colorConfigurationCopy.red,
-                      colorConfigurationCopy.green,
-                      colorConfigurationCopy.blue),
+                  color: colorConfigurationCopy.color
                 ))
               ])),
           _buildInputField(
@@ -78,9 +72,7 @@ class ColorState extends State<ColorEditorScreen> {
             colorConfiguration.flashDuration =
                 colorConfigurationCopy.flashDuration;
             colorConfiguration.behaviour = colorConfigurationCopy.behaviour;
-            colorConfiguration.red = colorConfigurationCopy.red;
-            colorConfiguration.green = colorConfigurationCopy.green;
-            colorConfiguration.blue = colorConfigurationCopy.blue;
+            colorConfiguration.color = colorConfigurationCopy.color;
             Navigator.of(context).pop();
           },
         )

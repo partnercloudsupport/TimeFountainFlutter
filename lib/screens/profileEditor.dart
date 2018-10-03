@@ -59,11 +59,7 @@ class ProfileState extends State<ProfileEditorScreen> {
                     child: Image(
                         height: 42.0,
                         image: AssetImage('assets/raindrop.png'),
-                        color: Color.fromARGB(
-                            255,
-                            colorConfiguration.red,
-                            colorConfiguration.green,
-                            colorConfiguration.blue))),
+                        color: colorConfiguration.color)),
                 Text(
                   'Color ${index + 1}',
                 ),
@@ -84,7 +80,7 @@ class ProfileState extends State<ProfileEditorScreen> {
           .elementAt(profileIndex)
           .colorConfigurationDTO
           .add(ColorConfigurationDTO(
-              255, 0, 0, 0.0, 0.0, 1.0, ColorBehaviour.linear, 1500));
+              Color.fromARGB(255, 0, 255, 0), 0.0, 0.0, 1.0, ColorBehaviour.linear, 1500));
     });
   }
 }

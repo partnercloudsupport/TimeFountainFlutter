@@ -65,10 +65,11 @@ class ProfileState extends State<ProfileEditorScreen> {
                 ),
               ],
             ),
-            onTap: () {
-              showDialog(
+            onTap: () async {
+              await showDialog(
                   context: context,
                   builder: (context) => ColorEditorScreen(colorConfiguration));
+              setState(() {});
             });
       },
     );
@@ -79,8 +80,8 @@ class ProfileState extends State<ProfileEditorScreen> {
       timeFountainDTO.profiles
           .elementAt(profileIndex)
           .colorConfigurationDTO
-          .add(ColorConfigurationDTO(
-              Color.fromARGB(255, 0, 255, 0), 0.0, 0.0, 1.0, ColorBehaviour.linear, 1500));
+          .add(ColorConfigurationDTO(Color.fromARGB(255, 0, 255, 0), 0.0, 0.0,
+              1.0, ColorBehaviour.linear, 1500));
     });
   }
 }

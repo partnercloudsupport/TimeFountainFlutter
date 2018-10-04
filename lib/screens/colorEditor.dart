@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../model/colorConfigurationDTO.dart';
+import './colorPicker.dart';
 
 class ColorEditorScreen extends StatefulWidget {
   final ColorConfigurationDTO colorConfigurationDTO;
@@ -27,7 +28,7 @@ class ColorState extends State<ColorEditorScreen> {
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
           GestureDetector(
-              onTap: () { },
+              onTap: () { _showColorPicker(context, colorConfigurationCopy); },
               child: Row(children: <Widget>[
                 Expanded(
                     child: Container(
@@ -107,6 +108,12 @@ class ColorState extends State<ColorEditorScreen> {
     if (val != null) {
       colorConfiguration.flashDuration = val;
     }
+  }
+
+  void _showColorPicker(BuildContext context, ColorConfigurationDTO colorConfiguration) async {
+    await showDialog(context: context,
+    builder: (context) => new ColorPickerScreen(colorConfiguration));
+    setState(() {});
   }
 
   Widget _buildInputField(String hint, onChanged, String initialValue) {

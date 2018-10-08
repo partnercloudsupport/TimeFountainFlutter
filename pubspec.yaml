@@ -21,6 +21,7 @@ dependencies:
   cupertino_icons: ^0.1.2
   flutter_blue: ^0.4.0
   flutter_colorpicker: any
+  mutex: ^1.0.1
 
 dev_dependencies:
   flutter_test:

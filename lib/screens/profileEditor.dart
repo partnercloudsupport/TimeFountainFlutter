@@ -1,28 +1,28 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_blue/flutter_blue.dart';
 import '../model/timeFountainDTO.dart';
 import '../model/colorConfigurationDTO.dart';
 import '../model/profileDTO.dart';
 import './colorEditor.dart';
+import '../bluetooth/bluetoothCommunicator.dart';
 
 class ProfileEditorScreen extends StatefulWidget {
-  final BluetoothDevice device;
-  final TimeFountainDTO timeFountainDTO;
+  final BluetoothCommunicator _communicator;
+  final TimeFountainDTO _timeFountainDTO;
   final int index;
 
-  ProfileEditorScreen(this.device, this.timeFountainDTO, this.index);
+  ProfileEditorScreen(this._communicator, this._timeFountainDTO, this.index);
 
   @override
   ProfileState createState() =>
-      new ProfileState(device, timeFountainDTO, index);
+      new ProfileState(_communicator, _timeFountainDTO, index);
 }
 
 class ProfileState extends State<ProfileEditorScreen> {
-  final BluetoothDevice device;
+  final BluetoothCommunicator _communicator;
   final TimeFountainDTO timeFountainDTO;
   final int profileIndex;
 
-  ProfileState(this.device, this.timeFountainDTO, this.profileIndex);
+  ProfileState(this._communicator, this.timeFountainDTO, this.profileIndex);
 
   @override
   Widget build(BuildContext context) {

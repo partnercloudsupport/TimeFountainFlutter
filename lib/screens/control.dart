@@ -5,6 +5,7 @@ import '../model/profileDTO.dart';
 import './profileEditor.dart';
 import '../bluetooth/bluetoothCommunicator.dart';
 import '../bluetooth/errorCode.dart';
+import '../model/colorConfigurationDTO.dart';
 
 class ControlScreen extends StatefulWidget {
   final BluetoothDevice device;
@@ -174,9 +175,9 @@ class ControlState extends State<ControlScreen> {
   void _makeProfileActive(int index) {
     _communicator.send('set activeprofile $index', (response) {
       int activeProfile = int.tryParse(response);
-      if (activeProfile == null || activeProfile != index)
-      {
-        _onError(ErrorCode.error_response, "Failed to parse activeprofile. Was $activeProfile expected $index");
+      if (activeProfile == null || activeProfile != index) {
+        _onError(ErrorCode.error_response,
+            "Failed to parse activeprofile. Was $activeProfile expected $index");
         return;
       }
       setState(() {
@@ -186,19 +187,62 @@ class ControlState extends State<ControlScreen> {
   }
 
   ProfileDTO _getProfileFromString(String str) {
-    return ProfileDTO();
+    List<String> args = str.split(' ');
+    if (args.length == 0) {
+      return ProfileDTO();
+    }
+    int numColorConfigurations = int.tryParse(args[0]);
+    if (numColorConfigurations == null) {
+      return ProfileDTO();
+    }
+    if (args.length != numColorConfigurations * 6 + 1) {
+      return ProfileDTO();
+    }
+
+    ProfileDTO ret = new ProfileDTO();
+
+    for (int i = 0; i < numColorConfigurations; ++i) {
+      int color = int.tryParse(args[1 + (i * 6) + 0]);
+      ColorBehaviour behaviour = args[1 + (i * 6) + 1] == 'linear'
+          ? ColorBehaviour.linear
+          : ColorBehaviour.sine;
+      double frequencyDelta = double.tryParse(args[1 + (i * 6) + 2]);
+      double offset = double.tryParse(args[1 + (i * 6) + 3]);
+      double amplitude = double.tryParse(args[1 + (i * 6) + 4]);
+      int flashDuration = int.tryParse(args[1 + (i * 6) + 5]);
+
+      if (color == null ||
+          frequencyDelta == null ||
+          offset == null ||
+          amplitude == null ||
+          flashDuration == null) {
+        ret.colorConfigurationDTO.add(new ColorConfigurationDTO(
+            Color.fromARGB(255, 255, 255, 255),
+            0.0,
+            0.0,
+            0.0,
+            ColorBehaviour.linear,
+            1500));
+      } else {
+        ret.colorConfigurationDTO.add(new ColorConfigurationDTO(Color(color),
+            frequencyDelta, offset, amplitude, behaviour, flashDuration));
+      }
+    }
+    return ret;
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(_deviceName), actions: <Widget>[_buildMenu()],),
+      appBar: AppBar(
+        title: Text(_deviceName),
+        actions: <Widget>[_buildMenu()],
+      ),
       body: _buildBody(),
       floatingActionButton: _loading
           ? null
           : FloatingActionButton(
               onPressed: _addProfile, child: Icon(Icons.add)),
-              
     );
   }
 
@@ -288,31 +332,24 @@ class ControlState extends State<ControlScreen> {
     );
   }
 
-Widget _buildMenu() {
-  return PopupMenuButton(
-    itemBuilder: (BuildContext context) {
-      return <PopupMenuItem>[
-        PopupMenuItem(
-          value: 'calibrate',
-          child: new ListTile(title: Text('Calibrate'))
-        ),
-        PopupMenuItem(
-          value: 'disconnect',
-          child: new ListTile(title: Text('Disconnect'))
-        )
-      ];
-    },
-    onSelected: (value) {
-      if (value == 'calibrate')
-      {
-
-      }
-      else if (value == 'disconnect')
-      {
-        Navigator.of(context).pop();
-      }
-    },
-  );
-}
-
+  Widget _buildMenu() {
+    return PopupMenuButton(
+      itemBuilder: (BuildContext context) {
+        return <PopupMenuItem>[
+          PopupMenuItem(
+              value: 'calibrate',
+              child: new ListTile(title: Text('Calibrate'))),
+          PopupMenuItem(
+              value: 'disconnect',
+              child: new ListTile(title: Text('Disconnect')))
+        ];
+      },
+      onSelected: (value) {
+        if (value == 'calibrate') {
+        } else if (value == 'disconnect') {
+          Navigator.of(context).pop();
+        }
+      },
+    );
+  }
 }

@@ -34,7 +34,7 @@ class ProfileState extends State<ProfileEditorScreen> {
       if (args.length != 6) {
         return "Invalid amount of arguments ${args.length}";
       }
-      int color = int.tryParse(args[0]);
+      int color = int.tryParse(args[0], radix: 16);
       ColorBehaviour behaviour =
           args[1] == 'linear' ? ColorBehaviour.linear : ColorBehaviour.sine;
       double frequencyDelta = double.tryParse(args[2]);
@@ -48,8 +48,6 @@ class ProfileState extends State<ProfileEditorScreen> {
           flashDuration == null) {
         return "Failed to parse colorconfiguration from response";
       }
-
-      return true;
     });
     setState(() {
       getProfile().colorConfigurationDTO.add(ColorConfigurationDTO(

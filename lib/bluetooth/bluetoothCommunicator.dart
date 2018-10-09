@@ -76,14 +76,18 @@ class BluetoothCommunicator {
       return;
     }
     var timeoutFunction =
-        Future.delayed(Duration(seconds: 5)).asStream().listen((val) {
+        Future.delayed(Duration(seconds: 10)).asStream().listen((val) {
       _onError(ErrorCode.error_timeout, null);
     });
     _onReceiveFunctions.add((String response) {
       timeoutFunction.cancel();
       if (response.startsWith("OK:"))
       {
-        onReceive(response.split(':')[1]);
+        var result = onReceive(response.split(':')[1]);
+        if (result != null)
+        {
+          _onError(ErrorCode.error_response, "$response\n$result", popStack);
+        }
       }
       else
       {

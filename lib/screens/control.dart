@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 import '../model/timeFountainDTO.dart';
 import '../model/profileDTO.dart';
-import './profileEditor.dart';
+import '../model/colorConfigurationDTO.dart';
 import '../bluetooth/bluetoothCommunicator.dart';
 import '../bluetooth/errorCode.dart';
-import '../model/colorConfigurationDTO.dart';
+import './profileEditor.dart';
+import './calibration.dart';
 
 class ControlScreen extends StatefulWidget {
   final BluetoothDevice device;
@@ -49,27 +50,34 @@ class ControlState extends State<ControlScreen> {
         return;
       }
 
-      _communicator.send('get numprofiles', (String strNumProfiles) {
-        int numProfiles = int.tryParse(strNumProfiles);
-        if (numProfiles == null) {
-          _onError(
-              ErrorCode.error_response, "Num Profiles could not be parsed");
-          return;
+      _communicator.send('get power', (String strPower) {
+        int powerState = int.tryParse(strPower);
+        if (powerState == null) {
+          return "Power state could not be parsed";
         }
-        int i = 0;
-        Function onProfileResponse;
-        onProfileResponse = (String profileResponse) {
-          _timeFountainDTO.profiles.add(_getProfileFromString(profileResponse));
-          ++i;
-          if (i < numProfiles) {
-            _communicator.send('get profile $i', onProfileResponse);
-          } else {
-            setState(() {
-              _loading = false;
-            });
+        _timeFountainDTO.powerState = powerState == 1;
+
+        _communicator.send('get numprofiles', (String strNumProfiles) {
+          int numProfiles = int.tryParse(strNumProfiles);
+          if (numProfiles == null) {
+            return "Num Profiles could not be parsed";
           }
-        };
-        _communicator.send('get profile $i', onProfileResponse);
+          int i = 0;
+          Function onProfileResponse;
+          onProfileResponse = (String profileResponse) {
+            _timeFountainDTO.profiles
+                .add(_getProfileFromString(profileResponse));
+            ++i;
+            if (i < numProfiles) {
+              _communicator.send('get profile $i', onProfileResponse);
+            } else {
+              setState(() {
+                _loading = false;
+              });
+            }
+          };
+          _communicator.send('get profile $i', onProfileResponse);
+        });
       });
     });
   }
@@ -127,7 +135,7 @@ class ControlState extends State<ControlScreen> {
     _communicator.send('add profile', (String strIdx) {
       int idx = int.tryParse(strIdx);
       if (idx == null) {
-        _onError(ErrorCode.error_response, "Failed to parse profileIdx");
+        return "Failed to parse profileIdx";
       }
       _communicator.send('get profile $idx', (String strProfile) {
         setState(() {
@@ -176,9 +184,7 @@ class ControlState extends State<ControlScreen> {
     _communicator.send('set activeprofile $index', (response) {
       int activeProfile = int.tryParse(response);
       if (activeProfile == null || activeProfile != index) {
-        _onError(ErrorCode.error_response,
-            "Failed to parse activeprofile. Was $activeProfile expected $index");
-        return;
+        return "Failed to parse activeprofile. Was $activeProfile expected $index";
       }
       setState(() {
         _timeFountainDTO.activeProfile = activeProfile;
@@ -312,14 +318,12 @@ class ControlState extends State<ControlScreen> {
               title: Text('Edit'),
             ),
           ),
-          index != 0
-              ? PopupMenuItem(
-                  value: 'delete',
-                  child: new ListTile(
-                    title: Text('Delete'),
-                  ),
-                )
-              : null
+          PopupMenuItem(
+            value: 'delete',
+            child: new ListTile(
+              title: Text('Delete'),
+            ),
+          )
         ];
       },
       onSelected: (value) {
@@ -336,9 +340,11 @@ class ControlState extends State<ControlScreen> {
     return PopupMenuButton(
       itemBuilder: (BuildContext context) {
         return <PopupMenuItem>[
-          PopupMenuItem(
-              value: 'calibrate',
-              child: new ListTile(title: Text('Calibrate'))),
+          _timeFountainDTO.powerState
+              ? PopupMenuItem(
+                  value: 'calibrate',
+                  child: new ListTile(title: Text('Calibrate')))
+              : null,
           PopupMenuItem(
               value: 'disconnect',
               child: new ListTile(title: Text('Disconnect')))
@@ -346,6 +352,8 @@ class ControlState extends State<ControlScreen> {
       },
       onSelected: (value) {
         if (value == 'calibrate') {
+          Navigator.of(context).push(MaterialPageRoute(
+              builder: (context) => new CalibrationScreen(_communicator)));
         } else if (value == 'disconnect') {
           Navigator.of(context).pop();
         }

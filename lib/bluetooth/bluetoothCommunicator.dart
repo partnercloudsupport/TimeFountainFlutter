@@ -110,7 +110,7 @@ class BluetoothCommunicator {
         _onError(ErrorCode.error_timeout, data);
       });
     } catch (error) {
-      _onError(ErrorCode.error_send, data);
+      _onError(ErrorCode.error_send, "$data\nerror message: $error");
     }
     finally {
       _sendingMutex.release();

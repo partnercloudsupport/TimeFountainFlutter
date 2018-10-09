@@ -146,11 +146,16 @@ class ControlState extends State<ControlScreen> {
   }
 
   void _editProfile(int index) {
-    Navigator.push(
-        context,
-        MaterialPageRoute(
-            builder: (context) =>
-                ProfileEditorScreen(_communicator, _timeFountainDTO, index)));
+    _communicator.send('set activeprofile $index', (_) {
+      setState(() {
+        _timeFountainDTO.activeProfile = index;
+      });
+      Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) =>
+                  ProfileEditorScreen(_communicator, _timeFountainDTO, index)));
+    });
   }
 
   void _deleteProfile(int index) {

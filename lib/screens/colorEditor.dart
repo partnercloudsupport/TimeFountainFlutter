@@ -6,7 +6,7 @@ import '../bluetooth/bluetoothCommunicator.dart';
 class ColorEditorScreen extends StatefulWidget {
   final ColorConfigurationDTO colorConfigurationDTO;
   final BluetoothCommunicator _communicator;
-  int index;
+  final int index;
   ColorEditorScreen(this._communicator, this.colorConfigurationDTO, this.index);
   @override
   ColorState createState() =>
@@ -17,7 +17,7 @@ class ColorState extends State<ColorEditorScreen> {
   ColorConfigurationDTO colorConfiguration;
   ColorConfigurationDTO colorConfigurationCopy;
   final BluetoothCommunicator _communicator;
-  int index;
+  final int index;
   ColorState(this._communicator, this.colorConfiguration, this.index)
       : colorConfigurationCopy = new ColorConfigurationDTO(
             colorConfiguration.color,
@@ -74,7 +74,7 @@ class ColorState extends State<ColorEditorScreen> {
           onPressed: () {
             _communicator.send(
                 'set colorconfiguration $index ' +
-                    '--color=${colorConfigurationCopy.color.value.toRadixString(16)} ' +
+                    '--color=${(colorConfigurationCopy.color.value & 0xFFFFFF).toRadixString(16)} ' +
                     '--amplitude=${colorConfigurationCopy.amplitude} ' +
                     '--offset=${colorConfigurationCopy.offset} ' +
                     '--frequencydelta=${colorConfigurationCopy.frequencyDelta} ' +

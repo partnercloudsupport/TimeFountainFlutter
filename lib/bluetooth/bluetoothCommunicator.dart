@@ -45,7 +45,7 @@ class BluetoothCommunicator {
                 ErrorCode.error_characteristic_not_found, null);
             return;
           }
-          _onTimeoutListener.cancel();
+          _onTimeoutListener?.cancel();
           _onTimeoutListener = null;
           _onValueChangeListener =
               _device.onValueChanged(_rxTxCharacteristic).listen(_onData);
@@ -80,7 +80,8 @@ class BluetoothCommunicator {
       _onError(ErrorCode.error_timeout, null);
     });
     _onReceiveFunctions.add((String response) {
-      timeoutFunction.cancel();
+      timeoutFunction?.cancel();
+      timeoutFunction = null;
       if (response.startsWith("OK:"))
       {
         var result = onReceive(response.split(':')[1]);

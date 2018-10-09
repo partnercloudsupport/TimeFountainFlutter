@@ -1,18 +1,24 @@
 import 'package:flutter/material.dart';
 import '../model/colorConfigurationDTO.dart';
 import './colorPicker.dart';
+import '../bluetooth/bluetoothCommunicator.dart';
 
 class ColorEditorScreen extends StatefulWidget {
   final ColorConfigurationDTO colorConfigurationDTO;
-  ColorEditorScreen(this.colorConfigurationDTO);
+  final BluetoothCommunicator _communicator;
+  int index;
+  ColorEditorScreen(this._communicator, this.colorConfigurationDTO, this.index);
   @override
-  ColorState createState() => new ColorState(colorConfigurationDTO);
+  ColorState createState() =>
+      new ColorState(_communicator, colorConfigurationDTO, this.index);
 }
 
 class ColorState extends State<ColorEditorScreen> {
   ColorConfigurationDTO colorConfiguration;
   ColorConfigurationDTO colorConfigurationCopy;
-  ColorState(this.colorConfiguration)
+  final BluetoothCommunicator _communicator;
+  int index;
+  ColorState(this._communicator, this.colorConfiguration, this.index)
       : colorConfigurationCopy = new ColorConfigurationDTO(
             colorConfiguration.color,
             colorConfiguration.frequencyDelta,
@@ -28,13 +34,13 @@ class ColorState extends State<ColorEditorScreen> {
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
           GestureDetector(
-              onTap: () { _showColorPicker(context, colorConfigurationCopy); },
+              onTap: () {
+                _showColorPicker(context, colorConfigurationCopy);
+              },
               child: Row(children: <Widget>[
                 Expanded(
                     child: Container(
-                  height: 32.0,
-                  color: colorConfigurationCopy.color
-                ))
+                        height: 32.0, color: colorConfigurationCopy.color))
               ])),
           _buildInputField(
               'ΔFrequency',
@@ -66,15 +72,25 @@ class ColorState extends State<ColorEditorScreen> {
         FlatButton(
           child: Text('OK'),
           onPressed: () {
-            colorConfiguration.amplitude = colorConfigurationCopy.amplitude;
-            colorConfiguration.offset = colorConfigurationCopy.offset;
-            colorConfiguration.frequencyDelta =
-                colorConfigurationCopy.frequencyDelta;
-            colorConfiguration.flashDuration =
-                colorConfigurationCopy.flashDuration;
-            colorConfiguration.behaviour = colorConfigurationCopy.behaviour;
-            colorConfiguration.color = colorConfigurationCopy.color;
-            Navigator.of(context).pop();
+            _communicator.send(
+                'set colorconfiguration $index ' +
+                    '--color=${colorConfigurationCopy.color.value.toRadixString(16)} ' +
+                    '--amplitude=${colorConfigurationCopy.amplitude} ' +
+                    '--offset=${colorConfigurationCopy.offset} ' +
+                    '--frequencydelta=${colorConfigurationCopy.frequencyDelta} ' +
+                    '--flashduration=${colorConfigurationCopy.flashDuration} ' +
+                    '--behaviour=${colorConfigurationCopy.behaviour == ColorBehaviour.linear ? 'linear' : 'sine'}',
+                (_) {
+              colorConfiguration.amplitude = colorConfigurationCopy.amplitude;
+              colorConfiguration.offset = colorConfigurationCopy.offset;
+              colorConfiguration.frequencyDelta =
+                  colorConfigurationCopy.frequencyDelta;
+              colorConfiguration.flashDuration =
+                  colorConfigurationCopy.flashDuration;
+              colorConfiguration.behaviour = colorConfigurationCopy.behaviour;
+              colorConfiguration.color = colorConfigurationCopy.color;
+              Navigator.of(context).pop();
+            });
           },
         )
       ],
@@ -110,9 +126,11 @@ class ColorState extends State<ColorEditorScreen> {
     }
   }
 
-  void _showColorPicker(BuildContext context, ColorConfigurationDTO colorConfiguration) async {
-    await showDialog(context: context,
-    builder: (context) => new ColorPickerScreen(colorConfiguration));
+  void _showColorPicker(
+      BuildContext context, ColorConfigurationDTO colorConfiguration) async {
+    await showDialog(
+        context: context,
+        builder: (context) => new ColorPickerScreen(colorConfiguration));
     setState(() {});
   }
 

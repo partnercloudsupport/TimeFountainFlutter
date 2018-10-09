@@ -104,7 +104,7 @@ class ProfileState extends State<ProfileEditorScreen> {
           onTap: () async {
             await showDialog(
                 context: context,
-                builder: (context) => ColorEditorScreen(colorConfiguration));
+                builder: (context) => ColorEditorScreen(_communicator, colorConfiguration, index));
             setState(() {});
           },
           trailing: _buildItemMenu(index),

@@ -99,9 +99,7 @@ class DeviceListState extends State<DeviceListScreen>
   }
 
   void _stopListening() {
-    if (_scanSubscription != null) {
-      _scanSubscription.cancel();
-    }
+    _scanSubscription?.cancel();
     _scanSubscription = null;
   }
 }

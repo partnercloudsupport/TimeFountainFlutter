@@ -13,7 +13,9 @@ class CalibrationState extends State<CalibrationScreen> {
   int _motorDuty = 0;
   double _baseFrequency = 50.0;
 
-  CalibrationState(this._communicator);
+  bool _loading;
+
+  CalibrationState(this._communicator) : _loading = true;
 
   @override
   void initState() {
@@ -33,6 +35,7 @@ class CalibrationState extends State<CalibrationScreen> {
           setState(() {
             _motorDuty = duty;
             _baseFrequency = frequency;
+            _loading = false;
           });
         });
       });
@@ -52,6 +55,9 @@ class CalibrationState extends State<CalibrationScreen> {
   }
 
   Widget _buildBody() {
+    if (_loading) {
+      return Center(child: CircularProgressIndicator());
+    }
     return Column(
       children: <Widget>[
         Column(

@@ -48,16 +48,18 @@ class ProfileState extends State<ProfileEditorScreen> {
           flashDuration == null) {
         return "Failed to parse colorconfiguration from response";
       }
-    });
-    setState(() {
-      getProfile().colorConfigurationDTO.add(ColorConfigurationDTO(
-          Color.fromARGB(255, 0, 255, 0),
-          0.0,
-          0.0,
-          1.0,
-          ColorBehaviour.linear,
-          1500));
-    });
+
+      color |= 0xFF000000;
+      setState(() {
+        getProfile().colorConfigurationDTO.add(ColorConfigurationDTO(
+            Color(color),
+            frequencyDelta,
+            offset,
+            amplitude,
+            behaviour,
+            flashDuration));
+      });
+    }, false);
   }
 
   void _deleteColorConfiguration(index) {}
@@ -102,7 +104,8 @@ class ProfileState extends State<ProfileEditorScreen> {
           onTap: () async {
             await showDialog(
                 context: context,
-                builder: (context) => ColorEditorScreen(_communicator, colorConfiguration, index));
+                builder: (context) => ColorEditorScreen(
+                    _communicator, colorConfiguration, index));
             setState(() {});
           },
           trailing: _buildItemMenu(index),

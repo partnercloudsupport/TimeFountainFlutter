@@ -1,7 +1,7 @@
 import 'package:flutter_blue/flutter_blue.dart';
-import './errorCode.dart';
-import 'dart:async';
 import 'package:mutex/mutex.dart';
+import 'dart:async';
+import './errorCode.dart';
 
 FlutterBlue flutterBlue = FlutterBlue.instance;
 
@@ -41,8 +41,7 @@ class BluetoothCommunicator {
           });
           if (_rxTxCharacteristic == null) {
             disconnect();
-            _onError(
-                ErrorCode.error_characteristic_not_found, null);
+            _onError(ErrorCode.error_characteristic_not_found, null);
             return;
           }
           _onTimeoutListener?.cancel();
@@ -70,9 +69,9 @@ class BluetoothCommunicator {
     _onValueChangeListener = null;
   }
 
-  void send(String data, Function onReceive, [bool popStack = true]) async {
+  void send(String message, Function onReceive, [bool popStack = true]) async {
     if (!_connected || _rxTxCharacteristic == null) {
-      _onError(ErrorCode.error_not_connected, data);
+      _onError(ErrorCode.error_not_connected, message);
       return;
     }
     var timeoutFunction =
@@ -82,37 +81,44 @@ class BluetoothCommunicator {
     _onReceiveFunctions.add((String response) {
       timeoutFunction?.cancel();
       timeoutFunction = null;
-      if (response.startsWith("OK:"))
-      {
+      if (response.startsWith("OK:")) {
         var result = onReceive(response.split(':')[1]);
-        if (result != null)
-        {
+        if (result != null) {
           _onError(ErrorCode.error_response, "$response\n$result", popStack);
         }
-      }
-      else
-      {
+      } else {
         _onError(ErrorCode.error_response, response, popStack);
       }
     });
 
-    if (!data.endsWith('\n')) {
-      data += '\n';
+    if (!message.endsWith('\n')) {
+      message += '\n';
     }
     try {
       await _sendingMutex.acquire();
-      
-      await _device
-          .writeCharacteristic(_rxTxCharacteristic,
-              data.split('').map<int>((str) => str.codeUnitAt(0)).toList(),
-              type: CharacteristicWriteType.withResponse)
-          .timeout(new Duration(seconds: 5), onTimeout: () {
-        _onError(ErrorCode.error_timeout, data);
-      });
+
+      List<int> data =
+          message.split('').map<int>((str) => str.codeUnitAt(0)).toList();
+
+      final tempListSize = 80;
+      for (int i = 0; i < (data.length ~/ tempListSize) + (data.length % tempListSize == 0 ? 0 : 1); ++i) {
+        int start = i * tempListSize;
+        int end = (i + 1) * tempListSize;
+        if (end > data.length) {
+          end = data.length;
+        }
+
+        List<int> tempData = data.sublist(start, end);
+        await _device
+            .writeCharacteristic(_rxTxCharacteristic, tempData,
+                type: CharacteristicWriteType.withResponse)
+            .timeout(new Duration(seconds: 5), onTimeout: () {
+          _onError(ErrorCode.error_timeout, message);
+        });
+      }
     } catch (error) {
-      _onError(ErrorCode.error_send, "$data\nerror message: $error");
-    }
-    finally {
+      _onError(ErrorCode.error_send, "$message\nerror message: $error");
+    } finally {
       _sendingMutex.release();
     }
   }
@@ -124,8 +130,8 @@ class BluetoothCommunicator {
       String response = _receivedData.substring(0, idx).trim();
       _receivedData = _receivedData.substring(idx + 1);
       if (_onReceiveFunctions.length > 0) {
-          _onReceiveFunctions.elementAt(0)(response);
-          _onReceiveFunctions.removeAt(0);
+        _onReceiveFunctions.elementAt(0)(response);
+        _onReceiveFunctions.removeAt(0);
       } else {
         _onError(ErrorCode.error_no_handler_available, response, false);
       }

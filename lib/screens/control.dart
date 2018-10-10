@@ -213,7 +213,7 @@ class ControlState extends State<ControlScreen> {
     ProfileDTO ret = new ProfileDTO();
 
     for (int i = 0; i < numColorConfigurations; ++i) {
-      int color = int.tryParse(args[1 + (i * 6) + 0]);
+      int color = int.tryParse(args[1 + (i * 6) + 0], radix: 16);
       ColorBehaviour behaviour = args[1 + (i * 6) + 1] == 'linear'
           ? ColorBehaviour.linear
           : ColorBehaviour.sine;
@@ -235,6 +235,7 @@ class ControlState extends State<ControlScreen> {
             ColorBehaviour.linear,
             1500));
       } else {
+        color |= 0xFF000000;
         ret.colorConfigurationDTO.add(new ColorConfigurationDTO(Color(color),
             frequencyDelta, offset, amplitude, behaviour, flashDuration));
       }

@@ -97,11 +97,17 @@ class BluetoothCommunicator {
     try {
       await _sendingMutex.acquire();
 
+      print(message);
+
       List<int> data =
           message.split('').map<int>((str) => str.codeUnitAt(0)).toList();
 
       final tempListSize = 80;
-      for (int i = 0; i < (data.length ~/ tempListSize) + (data.length % tempListSize == 0 ? 0 : 1); ++i) {
+      for (int i = 0;
+          i <
+              (data.length ~/ tempListSize) +
+                  (data.length % tempListSize == 0 ? 0 : 1);
+          ++i) {
         int start = i * tempListSize;
         int end = (i + 1) * tempListSize;
         if (end > data.length) {

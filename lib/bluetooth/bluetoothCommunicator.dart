@@ -99,8 +99,7 @@ class BluetoothCommunicator {
 
       print(message);
 
-      List<int> data =
-          message.split('').map<int>((str) => str.codeUnitAt(0)).toList();
+      List<int> data = message.codeUnits;
 
       final tempListSize = 80;
       for (int i = 0;

@@ -137,14 +137,13 @@ class ControlState extends State<ControlScreen> {
   void _editProfile(int index) {
     _communicator.send('set profile ${_timeFountainDTO.profiles[index]}',
         (String response) async {
-      setState(() {
-        _timeFountainDTO.activeProfile = _getProfileFromString(response);
-      });
       await Navigator.push(
           context,
           MaterialPageRoute(
               builder: (context) =>
                   ProfileEditorScreen(_communicator, _timeFountainDTO, index)));
+
+      _makeProfileActive(-1);
 
       _timeFountainDTO.save(_preferences);
     });
@@ -177,7 +176,7 @@ class ControlState extends State<ControlScreen> {
   }
 
   void _makeProfileActive(int index) {
-    _communicator.send('set profile ${_timeFountainDTO.profiles[index]}',
+    _communicator.send('set profile ${index == -1 ? _timeFountainDTO.activeProfile : _timeFountainDTO.profiles[index]}',
         (String response) {
       setState(() {
         _timeFountainDTO.activeProfile = _getProfileFromString(response);
@@ -285,14 +284,12 @@ class ControlState extends State<ControlScreen> {
         if (i.isOdd) return Divider();
 
         final index = i ~/ 2;
-        if (index >= _timeFountainDTO.profiles.length) {
+        if (index >= _timeFountainDTO.profiles.length + 1) {
           return null;
         }
         return ListTile(
           title: Text(index == 0 ? 'Default Profile' : 'Profile $index',
-              style: index == _timeFountainDTO.activeProfile
-                  ? _boldFont
-                  : TextStyle()),
+              ),
           trailing: index != 0 ? _buildItemMenu(index) : null,
           onTap: () {
             _makeProfileActive(index);
@@ -344,10 +341,11 @@ class ControlState extends State<ControlScreen> {
               child: new ListTile(title: Text('Disconnect')))
         ];
       },
-      onSelected: (value) {
+      onSelected: (value) async {
         if (value == 'calibrate') {
-          Navigator.of(context).push(MaterialPageRoute(
+          await Navigator.of(context).push(MaterialPageRoute(
               builder: (context) => new CalibrationScreen(_communicator)));
+          _makeProfileActive(-1);
         } else if (value == 'disconnect') {
           Navigator.of(context).pop();
         }

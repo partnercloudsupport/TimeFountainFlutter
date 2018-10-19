@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_blue/flutter_blue.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../model/timeFountainDTO.dart';
 import '../model/profileDTO.dart';
 import '../model/colorConfigurationDTO.dart';
@@ -27,13 +28,23 @@ class ControlState extends State<ControlScreen> {
   BluetoothCommunicator _communicator;
   bool _loading;
   bool _disposed;
+  SharedPreferences _preferences;
 
   ControlState(BluetoothDevice device)
       : _deviceName = device.name.length > 0 ? device.name : 'Unnamed Device',
         _loading = true,
         _disposed = false {
     _communicator = new BluetoothCommunicator(device, _onError);
-    _communicator.connect(_onConnected);
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    () async {
+      _preferences = await SharedPreferences.getInstance();
+      _timeFountainDTO.load(_preferences);
+      _communicator.connect(_onConnected);
+    }();
   }
 
   @override
@@ -57,26 +68,11 @@ class ControlState extends State<ControlScreen> {
         }
         _timeFountainDTO.powerState = powerState == 1;
 
-        _communicator.send('get numprofiles', (String strNumProfiles) {
-          int numProfiles = int.tryParse(strNumProfiles);
-          if (numProfiles == null) {
-            return "Num Profiles could not be parsed";
-          }
-          int i = 0;
-          Function onProfileResponse;
-          onProfileResponse = (String profileResponse) {
-            _timeFountainDTO.profiles
-                .add(_getProfileFromString(profileResponse));
-            ++i;
-            if (i < numProfiles) {
-              _communicator.send('get profile $i', onProfileResponse);
-            } else {
-              setState(() {
-                _loading = false;
-              });
-            }
-          };
-          _communicator.send('get profile $i', onProfileResponse);
+        _communicator.send('get profile', (String strProfile) {
+          _timeFountainDTO.activeProfile = _getProfileFromString(strProfile);
+          setState(() {
+            _loading = false;
+          });
         });
       });
     });
@@ -132,29 +128,25 @@ class ControlState extends State<ControlScreen> {
   }
 
   void _addProfile() {
-    _communicator.send('add profile', (String strIdx) {
-      int idx = int.tryParse(strIdx);
-      if (idx == null) {
-        return "Failed to parse profileIdx";
-      }
-      _communicator.send('get profile $idx', (String strProfile) {
-        setState(() {
-          _timeFountainDTO.profiles.add(_getProfileFromString(strProfile));
-        });
-      });
-    }, false);
+    setState(() {
+      _timeFountainDTO.profiles.add(ProfileDTO());
+      _timeFountainDTO.save(_preferences);
+    });
   }
 
   void _editProfile(int index) {
-    _communicator.send('set activeprofile $index', (_) {
+    _communicator.send('set profile ${_timeFountainDTO.profiles[index]}',
+        (String response) async {
       setState(() {
-        _timeFountainDTO.activeProfile = index;
+        _timeFountainDTO.activeProfile = _getProfileFromString(response);
       });
-      Navigator.push(
+      await Navigator.push(
           context,
           MaterialPageRoute(
               builder: (context) =>
                   ProfileEditorScreen(_communicator, _timeFountainDTO, index)));
+
+      _timeFountainDTO.save(_preferences);
     });
   }
 
@@ -174,11 +166,10 @@ class ControlState extends State<ControlScreen> {
                 FlatButton(
                     child: Text('OK'),
                     onPressed: () {
-                      _communicator.send('remove profile $index', (_) {
-                        setState(() {
-                          _timeFountainDTO.profiles.removeAt(index);
-                        });
-                      }, false);
+                      setState(() {
+                        _timeFountainDTO.profiles.removeAt(index);
+                        _timeFountainDTO.save(_preferences);
+                      });
                       Navigator.of(context).pop();
                     }),
               ],
@@ -186,13 +177,10 @@ class ControlState extends State<ControlScreen> {
   }
 
   void _makeProfileActive(int index) {
-    _communicator.send('set activeprofile $index', (response) {
-      int activeProfile = int.tryParse(response);
-      if (activeProfile == null || activeProfile != index) {
-        return "Failed to parse activeprofile. Was $activeProfile expected $index";
-      }
+    _communicator.send('set profile ${_timeFountainDTO.profiles[index]}',
+        (String response) {
       setState(() {
-        _timeFountainDTO.activeProfile = activeProfile;
+        _timeFountainDTO.activeProfile = _getProfileFromString(response);
       });
     });
   }

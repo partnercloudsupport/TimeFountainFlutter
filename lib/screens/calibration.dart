@@ -20,32 +20,24 @@ class CalibrationState extends State<CalibrationScreen> {
   @override
   void initState() {
     super.initState();
-    _communicator.send('set calibration on', (_) {
-      _communicator.send('get motorduty', (strMotorDuty) {
-        int duty = int.tryParse(strMotorDuty);
-        if (duty == null) {
+    _communicator.send('get motorduty', (strMotorDuty) {
+      int duty = int.tryParse(strMotorDuty);
+      if (duty == null) {
+        return;
+      }
+      _communicator.send('get basefrequency', (strBaseFrequency) {
+        double frequency = double.tryParse(strBaseFrequency);
+        if (frequency == null) {
           return;
         }
-        _communicator.send('get basefrequency', (strBaseFrequency) {
-          double frequency = double.tryParse(strBaseFrequency);
-          if (frequency == null) {
-            return;
-          }
 
-          setState(() {
-            _motorDuty = duty;
-            _baseFrequency = frequency;
-            _loading = false;
-          });
+        setState(() {
+          _motorDuty = duty;
+          _baseFrequency = frequency;
+          _loading = false;
         });
       });
     });
-  }
-
-  @override
-  void dispose() {
-    _communicator.send('set calibration off', (_) {});
-    super.dispose();
   }
 
   @override
@@ -73,11 +65,11 @@ class CalibrationState extends State<CalibrationScreen> {
               value: _motorDuty / 1023.0,
               onChanged: (value) {
                 setState(() {
-                  _motorDuty = (value * 1023.0).round();
+                  _motorDuty = (value * 1023).round();
                 });
               },
               onChangeEnd: (value) {
-                int duty = (value * 1023.0).round();
+                int duty = (value * 1023).round();
                 _communicator.send('set motorduty $duty', (_) {
                   setState(() {
                     _motorDuty = duty;

@@ -289,9 +289,9 @@ class ControlState extends State<ControlScreen> {
         }
         return ListTile(
           title: Text(
-            index == 0 ? 'Default Profile' : 'Profile $index',
+            'Profile $index',
           ),
-          trailing: index != 0 ? _buildItemMenu(index) : null,
+          trailing: _buildItemMenu(index),
           onTap: () {
             _makeProfileActive(index);
           },
@@ -338,6 +338,10 @@ class ControlState extends State<ControlScreen> {
                   child: new ListTile(title: Text('Calibrate')))
               : null,
           PopupMenuItem(
+            value: 'reset',
+            child: new ListTile(title: Text('Reset Profile'))
+          ),
+          PopupMenuItem(
               value: 'disconnect',
               child: new ListTile(title: Text('Disconnect')))
         ];
@@ -347,6 +351,10 @@ class ControlState extends State<ControlScreen> {
           await Navigator.of(context).push(MaterialPageRoute(
               builder: (context) => new CalibrationScreen(_communicator)));
           _makeProfileActive(-1);
+        } else if (value == 'reset') {
+          ProfileDTO profile = new ProfileDTO();
+          profile.colorConfigurationDTO.add(new ColorConfigurationDTO(Color(0xFFFFFFFF), 0.0, 0.0, 0.0, ColorBehaviour.linear, 1500));
+          _communicator.send('set profile $profile', (_) {});
         } else if (value == 'disconnect') {
           Navigator.of(context).pop();
         }

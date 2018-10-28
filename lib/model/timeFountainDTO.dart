@@ -6,29 +6,22 @@ import './colorConfigurationDTO.dart';
 class TimeFountainDTO {
   TimeFountainDTO();
 
-  void _addDefaultProfile()
-  {
-    profiles.add(ProfileDTO());
-    profiles.elementAt(profiles.length - 1).colorConfigurationDTO.add(ColorConfigurationDTO(Color.fromARGB(255, 255, 255, 255), 0.0, 0.0, 0.0, ColorBehaviour.linear, 1500));
-  }
-
   void load(SharedPreferences preferences) {
     int numProfiles = preferences.getInt('numprofiles') ?? 0;
     profiles = [];
-    _addDefaultProfile();
 
-    for (int i = 1; i < numProfiles + 1; ++i) {
+    for (int i = 0; i < numProfiles; ++i) {
       profiles.add(ProfileDTO());
-      profiles[i].load(preferences, i - 1);
+      profiles[i].load(preferences, i);
     }
   }
 
   void save(SharedPreferences preferences) {
-    preferences.setInt('numprofiles', profiles.length - 1);
+    preferences.setInt('numprofiles', profiles.length);
 
-    for (int i = 1; i < profiles.length; ++i)
+    for (int i = 0; i < profiles.length; ++i)
     {
-      profiles[i].save(preferences, i - 1);
+      profiles[i].save(preferences, i);
     }
   }
 

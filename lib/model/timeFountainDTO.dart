@@ -1,7 +1,5 @@
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter/material.dart';
 import './profileDTO.dart';
-import './colorConfigurationDTO.dart';
 
 class TimeFountainDTO {
   TimeFountainDTO();

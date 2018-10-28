@@ -4,6 +4,7 @@ import '../model/colorConfigurationDTO.dart';
 import '../model/profileDTO.dart';
 import './colorEditor.dart';
 import '../bluetooth/bluetoothCommunicator.dart';
+import '../widgets/outlinedRaindrop.dart';
 
 class ProfileEditorScreen extends StatefulWidget {
   final BluetoothCommunicator _communicator;
@@ -29,9 +30,7 @@ class ProfileState extends State<ProfileEditorScreen> {
   }
 
   void _update() {
-    _communicator.send('set profile ${getProfile()}', (String response) {
-
-    });
+    _communicator.send('set profile ${getProfile()}', (String response) {});
   }
 
   void _addColorConfiguration() {
@@ -75,12 +74,10 @@ class ProfileState extends State<ProfileEditorScreen> {
           title: Row(
             children: <Widget>[
               Padding(
-                  padding: EdgeInsets.only(
-                      left: 16.0, top: 8.0, bottom: 8.0, right: 16.0),
-                  child: Image(
-                      height: 42.0,
-                      image: AssetImage('assets/raindrop.png'),
-                      color: colorConfiguration.color)),
+                padding: EdgeInsets.only(
+                    left: 16.0, top: 8.0, bottom: 8.0, right: 16.0),
+                child: OutlinedRaindrop(colorConfiguration.color),
+              ),
               Text(
                 'Color ${index + 1}',
               ),

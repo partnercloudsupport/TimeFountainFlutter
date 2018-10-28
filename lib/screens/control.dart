@@ -21,7 +21,6 @@ class ControlState extends State<ControlScreen> {
   final TextStyle _titleFont =
       TextStyle(fontSize: 22.0, fontWeight: FontWeight.bold);
   final TextStyle _biggerFont = TextStyle(fontSize: 16.0);
-  final TextStyle _boldFont = TextStyle(fontWeight: FontWeight.bold);
 
   final TimeFountainDTO _timeFountainDTO = new TimeFountainDTO();
   final String _deviceName;
@@ -176,7 +175,8 @@ class ControlState extends State<ControlScreen> {
   }
 
   void _makeProfileActive(int index) {
-    _communicator.send('set profile ${index == -1 ? _timeFountainDTO.activeProfile : _timeFountainDTO.profiles[index]}',
+    _communicator.send(
+        'set profile ${index == -1 ? _timeFountainDTO.activeProfile : _timeFountainDTO.profiles[index]}',
         (String response) {
       setState(() {
         _timeFountainDTO.activeProfile = _getProfileFromString(response);
@@ -284,12 +284,13 @@ class ControlState extends State<ControlScreen> {
         if (i.isOdd) return Divider();
 
         final index = i ~/ 2;
-        if (index >= _timeFountainDTO.profiles.length + 1) {
+        if (index >= _timeFountainDTO.profiles.length) {
           return null;
         }
         return ListTile(
-          title: Text(index == 0 ? 'Default Profile' : 'Profile $index',
-              ),
+          title: Text(
+            index == 0 ? 'Default Profile' : 'Profile $index',
+          ),
           trailing: index != 0 ? _buildItemMenu(index) : null,
           onTap: () {
             _makeProfileActive(index);

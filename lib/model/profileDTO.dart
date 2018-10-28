@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import './colorConfigurationDTO.dart';
 
@@ -10,7 +11,7 @@ class ProfileDTO {
 
     for (int i = 0; i < numColorConfigurations; ++i)
     {
-      ColorConfigurationDTO conf;
+      ColorConfigurationDTO conf = ColorConfigurationDTO(Color(0xFFFFFFFF), 0.0, 0.0, 0.0, ColorBehaviour.linear, 1500);
       conf.load(preferences, profileIndex, i);
       colorConfigurationDTO.add(conf);
     }

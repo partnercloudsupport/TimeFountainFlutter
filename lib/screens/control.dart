@@ -136,19 +136,16 @@ class ControlState extends State<ControlScreen> {
     });
   }
 
-  void _editProfile(int index) {
-    _communicator.send('set profile ${_timeFountainDTO.profiles[index]}',
-        (String response) async {
-      await Navigator.push(
-          context,
-          MaterialPageRoute(
-              builder: (context) =>
-                  ProfileEditorScreen(_communicator, _timeFountainDTO, index)));
+  void _editProfile(int index) async {
+    await Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (context) =>
+                ProfileEditorScreen(_communicator, _timeFountainDTO, index)));
 
-      _makeProfileActive(-1);
+    _makeProfileActive(-1);
 
-      _timeFountainDTO.save(_preferences);
-    });
+    _timeFountainDTO.save(_preferences);
   }
 
   void _deleteProfile(int index) {

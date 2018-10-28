@@ -29,6 +29,13 @@ class ProfileState extends State<ProfileEditorScreen> {
     return timeFountainDTO.profiles.elementAt(profileIndex);
   }
 
+  @override
+  void initState()
+  {
+    super.initState();
+    _update();
+  }
+
   void _update() {
     _communicator.send('set profile ${getProfile()}', (String response) {});
   }

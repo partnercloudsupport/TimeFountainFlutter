@@ -25,7 +25,7 @@ class CalibrationState extends State<CalibrationScreen> {
       if (duty == null) {
         return;
       }
-      _communicator.send('get basefrequency', (strBaseFrequency) {
+      _communicator.send('get frequency', (strBaseFrequency) {
         double frequency = double.tryParse(strBaseFrequency);
         if (frequency == null) {
           return;
@@ -95,7 +95,7 @@ class CalibrationState extends State<CalibrationScreen> {
                       double frequency = double.tryParse(value);
                       if (frequency != null) {
                         _communicator.send(
-                            'set basefrequency $frequency', (_) {});
+                            'set frequency $frequency', (_) {});
                         _baseFrequency = frequency;
                       }
                     },

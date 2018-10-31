@@ -78,11 +78,11 @@ class BluetoothCommunicator {
         Future.delayed(Duration(seconds: 10)).asStream().listen((val) {
       _onError(ErrorCode.error_timeout, null);
     });
-    _onReceiveFunctions.add((String response) {
+    _onReceiveFunctions.add((String response) async {
       timeoutFunction?.cancel();
       timeoutFunction = null;
       if (response.startsWith("OK:")) {
-        var result = onReceive(response.split(':')[1]);
+        var result = await onReceive(response.split(':')[1]);
         if (result != null) {
           _onError(ErrorCode.error_response, "$response\n$result", popStack);
         }
@@ -128,14 +128,14 @@ class BluetoothCommunicator {
     }
   }
 
-  void _onData(List<int> data) {
+  void _onData(List<int> data) async {
     _receivedData += new String.fromCharCodes(data);
     int idx = -1;
     while ((idx = _receivedData.indexOf('\n')) > -1) {
       String response = _receivedData.substring(0, idx).trim();
       _receivedData = _receivedData.substring(idx + 1);
       if (_onReceiveFunctions.length > 0) {
-        _onReceiveFunctions.elementAt(0)(response);
+        await _onReceiveFunctions.elementAt(0)(response);
         _onReceiveFunctions.removeAt(0);
       } else {
         _onError(ErrorCode.error_no_handler_available, response, false);

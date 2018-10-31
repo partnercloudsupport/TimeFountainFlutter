@@ -387,7 +387,11 @@ class ControlState extends State<ControlScreen> {
           ProfileDTO profile = new ProfileDTO();
           profile.colorConfigurationDTO.add(new ColorConfigurationDTO(
               Color(0xFFFFFFFF), 0.0, 0.0, 0.0, ColorBehaviour.linear, 1500));
-          _communicator.send('set profile $profile', (_) {});
+          _communicator.send('set profile $profile', (response) {
+            setState(() {
+              _timeFountainDTO.activeProfile = _getProfileFromString(response);
+            });
+          });
         } else if (value == 'disconnect') {
           Navigator.of(context).pop();
         }

@@ -70,14 +70,14 @@ class CalibrationState extends State<CalibrationScreen> {
                   style: TextStyle(fontSize: 18.0),
                 )),
             Slider(
-              value: _motorDuty / 1023.0,
+              value: _motorDuty / 255.0,
               onChanged: (value) {
                 setState(() {
-                  _motorDuty = (value * 1023).round();
+                  _motorDuty = (value * 255.0).round();
                 });
               },
               onChangeEnd: (value) {
-                int duty = (value * 1023).round();
+                int duty = (value * 255.0).round();
                 _communicator.send('set motorduty $duty', (_) {
                   setState(() {
                     _motorDuty = duty;

@@ -4,6 +4,7 @@ import '../model/colorConfigurationDTO.dart';
 import '../model/profileDTO.dart';
 import './colorEditor.dart';
 import '../bluetooth/bluetoothCommunicator.dart';
+import '../widgets/outlinedRaindrop.dart';
 
 class ProfileEditorScreen extends StatefulWidget {
   final BluetoothCommunicator _communicator;
@@ -28,41 +29,31 @@ class ProfileState extends State<ProfileEditorScreen> {
     return timeFountainDTO.profiles.elementAt(profileIndex);
   }
 
-  void _addColorConfiguration() {
-    _communicator.send('add colorconfiguration', (String configuration) {
-      List<String> args = configuration.split(' ');
-      if (args.length != 6) {
-        return "Invalid amount of arguments ${args.length}";
-      }
-      int color = int.tryParse(args[0], radix: 16);
-      ColorBehaviour behaviour =
-          args[1] == 'linear' ? ColorBehaviour.linear : ColorBehaviour.sine;
-      double frequencyDelta = double.tryParse(args[2]);
-      double offset = double.tryParse(args[3]);
-      double amplitude = double.tryParse(args[4]);
-      int flashDuration = int.tryParse(args[5]);
-      if (color == null ||
-          frequencyDelta == null ||
-          offset == null ||
-          amplitude == null ||
-          flashDuration == null) {
-        return "Failed to parse colorconfiguration from response";
-      }
-
-      color |= 0xFF000000;
-      setState(() {
-        getProfile().colorConfigurationDTO.add(ColorConfigurationDTO(
-            Color(color),
-            frequencyDelta,
-            offset,
-            amplitude,
-            behaviour,
-            flashDuration));
-      });
-    }, false);
+  @override
+  void initState()
+  {
+    super.initState();
+    _update();
   }
 
-  void _deleteColorConfiguration(index) {}
+  void _update() {
+    _communicator.send('set profile ${getProfile()}', (String response) {});
+  }
+
+  void _addColorConfiguration() {
+    setState(() {
+      getProfile().colorConfigurationDTO.add(ColorConfigurationDTO(
+          Color(0xFFFFFFFF), 0.0, 0.0, 0.0, ColorBehaviour.linear, 1500));
+      _update();
+    });
+  }
+
+  void _deleteColorConfiguration(int index) {
+    setState(() {
+      getProfile().colorConfigurationDTO.removeAt(index);
+      _update();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -90,12 +81,10 @@ class ProfileState extends State<ProfileEditorScreen> {
           title: Row(
             children: <Widget>[
               Padding(
-                  padding: EdgeInsets.only(
-                      left: 16.0, top: 8.0, bottom: 8.0, right: 16.0),
-                  child: Image(
-                      height: 42.0,
-                      image: AssetImage('assets/raindrop.png'),
-                      color: colorConfiguration.color)),
+                padding: EdgeInsets.only(
+                    left: 16.0, top: 8.0, bottom: 8.0, right: 16.0),
+                child: OutlinedRaindrop(colorConfiguration.color),
+              ),
               Text(
                 'Color ${index + 1}',
               ),
@@ -104,9 +93,10 @@ class ProfileState extends State<ProfileEditorScreen> {
           onTap: () async {
             await showDialog(
                 context: context,
-                builder: (context) => ColorEditorScreen(
-                    _communicator, colorConfiguration, index));
-            setState(() {});
+                builder: (context) => ColorEditorScreen(colorConfiguration));
+            setState(() {
+              _update();
+            });
           },
           trailing: _buildItemMenu(index),
         );

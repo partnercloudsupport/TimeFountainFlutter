@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../bluetooth/bluetoothCommunicator.dart';
+import '../model/profileDTO.dart';
+import '../model/colorConfigurationDTO.dart';
 
 class CalibrationScreen extends StatefulWidget {
   final BluetoothCommunicator _communicator;
@@ -20,21 +22,27 @@ class CalibrationState extends State<CalibrationScreen> {
   @override
   void initState() {
     super.initState();
-    _communicator.send('get motorduty', (strMotorDuty) {
-      int duty = int.tryParse(strMotorDuty);
-      if (duty == null) {
-        return;
-      }
-      _communicator.send('get basefrequency', (strBaseFrequency) {
-        double frequency = double.tryParse(strBaseFrequency);
-        if (frequency == null) {
+
+    ProfileDTO profile = new ProfileDTO();
+    profile.colorConfigurationDTO.add(new ColorConfigurationDTO(
+        Color(0xFFFFFFFF), 0.0, 0.0, 0.0, ColorBehaviour.linear, 1500));
+    _communicator.send('set profile $profile', (_) {
+      _communicator.send('get motorduty', (strMotorDuty) {
+        int duty = int.tryParse(strMotorDuty);
+        if (duty == null) {
           return;
         }
+        _communicator.send('get frequency', (strBaseFrequency) {
+          double frequency = double.tryParse(strBaseFrequency);
+          if (frequency == null) {
+            return;
+          }
 
-        setState(() {
-          _motorDuty = duty;
-          _baseFrequency = frequency;
-          _loading = false;
+          setState(() {
+            _motorDuty = duty;
+            _baseFrequency = frequency;
+            _loading = false;
+          });
         });
       });
     });
@@ -94,8 +102,7 @@ class CalibrationState extends State<CalibrationScreen> {
                     onChanged: (value) {
                       double frequency = double.tryParse(value);
                       if (frequency != null) {
-                        _communicator.send(
-                            'set basefrequency $frequency', (_) {});
+                        _communicator.send('set frequency $frequency', (_) {});
                         _baseFrequency = frequency;
                       }
                     },

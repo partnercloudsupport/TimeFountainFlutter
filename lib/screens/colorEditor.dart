@@ -1,24 +1,19 @@
 import 'package:flutter/material.dart';
 import '../model/colorConfigurationDTO.dart';
 import './colorPicker.dart';
-import '../bluetooth/bluetoothCommunicator.dart';
 
 class ColorEditorScreen extends StatefulWidget {
   final ColorConfigurationDTO colorConfigurationDTO;
-  final BluetoothCommunicator _communicator;
-  final int index;
-  ColorEditorScreen(this._communicator, this.colorConfigurationDTO, this.index);
+  ColorEditorScreen(this.colorConfigurationDTO);
   @override
   ColorState createState() =>
-      new ColorState(_communicator, colorConfigurationDTO, this.index);
+      new ColorState(colorConfigurationDTO);
 }
 
 class ColorState extends State<ColorEditorScreen> {
   ColorConfigurationDTO colorConfiguration;
   ColorConfigurationDTO colorConfigurationCopy;
-  final BluetoothCommunicator _communicator;
-  final int index;
-  ColorState(this._communicator, this.colorConfiguration, this.index)
+  ColorState(this.colorConfiguration)
       : colorConfigurationCopy = new ColorConfigurationDTO(
             colorConfiguration.color,
             colorConfiguration.frequencyDelta,
@@ -40,7 +35,7 @@ class ColorState extends State<ColorEditorScreen> {
               child: Row(children: <Widget>[
                 Expanded(
                     child: Container(
-                        height: 32.0, color: colorConfigurationCopy.color))
+                        height: 32.0, decoration: BoxDecoration(color: colorConfigurationCopy.color, border: Border.all(color: Color(0xFF000000), width: 1.0)),))
               ])),
           _buildInputField(
               'ΔFrequency',
@@ -72,25 +67,15 @@ class ColorState extends State<ColorEditorScreen> {
         FlatButton(
           child: Text('OK'),
           onPressed: () {
-            _communicator.send(
-                'set colorconfiguration $index ' +
-                    '--color=${(colorConfigurationCopy.color.value & 0xFFFFFF).toRadixString(16)} ' +
-                    '--amplitude=${colorConfigurationCopy.amplitude} ' +
-                    '--offset=${colorConfigurationCopy.offset} ' +
-                    '--frequencydelta=${colorConfigurationCopy.frequencyDelta} ' +
-                    '--flashduration=${colorConfigurationCopy.flashDuration} ' +
-                    '--behaviour=${colorConfigurationCopy.behaviour == ColorBehaviour.linear ? 'linear' : 'sine'}',
-                (_) {
-              colorConfiguration.amplitude = colorConfigurationCopy.amplitude;
-              colorConfiguration.offset = colorConfigurationCopy.offset;
-              colorConfiguration.frequencyDelta =
-                  colorConfigurationCopy.frequencyDelta;
-              colorConfiguration.flashDuration =
-                  colorConfigurationCopy.flashDuration;
-              colorConfiguration.behaviour = colorConfigurationCopy.behaviour;
-              colorConfiguration.color = colorConfigurationCopy.color;
-              Navigator.of(context).pop();
-            });
+            colorConfiguration.amplitude = colorConfigurationCopy.amplitude;
+            colorConfiguration.offset = colorConfigurationCopy.offset;
+            colorConfiguration.frequencyDelta =
+                colorConfigurationCopy.frequencyDelta;
+            colorConfiguration.flashDuration =
+                colorConfigurationCopy.flashDuration;
+            colorConfiguration.behaviour = colorConfigurationCopy.behaviour;
+            colorConfiguration.color = colorConfigurationCopy.color;
+            Navigator.of(context).pop();
           },
         )
       ],

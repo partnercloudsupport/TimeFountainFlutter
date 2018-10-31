@@ -8,6 +8,7 @@ import '../bluetooth/bluetoothCommunicator.dart';
 import '../bluetooth/errorCode.dart';
 import './profileEditor.dart';
 import './calibration.dart';
+import '../widgets/outlinedRaindrop.dart';
 
 class ControlScreen extends StatefulWidget {
   final BluetoothDevice device;
@@ -20,8 +21,9 @@ class ControlScreen extends StatefulWidget {
 class ControlState extends State<ControlScreen> {
   final TextStyle _titleFont =
       TextStyle(fontSize: 22.0, fontWeight: FontWeight.bold);
+  final TextStyle _subtitleFont =
+      TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold);
   final TextStyle _biggerFont = TextStyle(fontSize: 16.0);
-  final TextStyle _boldFont = TextStyle(fontWeight: FontWeight.bold);
 
   final TimeFountainDTO _timeFountainDTO = new TimeFountainDTO();
   final String _deviceName;
@@ -134,19 +136,16 @@ class ControlState extends State<ControlScreen> {
     });
   }
 
-  void _editProfile(int index) {
-    _communicator.send('set profile ${_timeFountainDTO.profiles[index]}',
-        (String response) async {
-      await Navigator.push(
-          context,
-          MaterialPageRoute(
-              builder: (context) =>
-                  ProfileEditorScreen(_communicator, _timeFountainDTO, index)));
+  void _editProfile(int index) async {
+    await Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (context) =>
+                ProfileEditorScreen(_communicator, _timeFountainDTO, index)));
 
-      _makeProfileActive(-1);
+    _makeProfileActive(-1);
 
-      _timeFountainDTO.save(_preferences);
-    });
+    _timeFountainDTO.save(_preferences);
   }
 
   void _deleteProfile(int index) {
@@ -176,7 +175,8 @@ class ControlState extends State<ControlScreen> {
   }
 
   void _makeProfileActive(int index) {
-    _communicator.send('set profile ${index == -1 ? _timeFountainDTO.activeProfile : _timeFountainDTO.profiles[index]}',
+    _communicator.send(
+        'set profile ${index == -1 ? _timeFountainDTO.activeProfile : _timeFountainDTO.profiles[index]}',
         (String response) {
       setState(() {
         _timeFountainDTO.activeProfile = _getProfileFromString(response);
@@ -252,6 +252,7 @@ class ControlState extends State<ControlScreen> {
     return Column(
       children: <Widget>[
         _buildTopRow(),
+        _buildActiveProfile(),
         _buildProfileList(),
       ],
     );
@@ -275,27 +276,60 @@ class ControlState extends State<ControlScreen> {
     );
   }
 
+  Widget _buildActiveProfile() {
+    List<Widget> raindrops = [];
+    _timeFountainDTO.activeProfile?.colorConfigurationDTO?.forEach((conf) {
+      raindrops.add(Expanded(child: OutlinedRaindrop(conf.color)));
+    });
+
+    return Column(children: <Widget>[
+      Row(children: <Widget>[
+        Expanded(
+            child: Padding(
+                padding: EdgeInsets.only(left: 16.0, top: 16.0),
+                child: Text('Active Profile', style: _subtitleFont)))
+      ]),
+      Container(
+          height: 96.0,
+          child: Row(
+            children: raindrops,
+          ))
+    ]);
+  }
+
   Widget _buildProfileList() {
     return Expanded(
-        child: ListView.builder(
-      padding: const EdgeInsets.all(16.0),
-      itemCount: _timeFountainDTO.profiles.length * 2,
-      itemBuilder: (context, i) {
-        if (i.isOdd) return Divider();
+        child: Column(
+      children: <Widget>[
+        Row(children: <Widget>[
+          Expanded(
+              child: Padding(
+                  padding: EdgeInsets.only(left: 16.0, top: 16.0),
+                  child: Text('Profiles', style: _subtitleFont)))
+        ]),
+        Expanded(
+            child: ListView.builder(
+          padding: const EdgeInsets.all(16.0),
+          itemCount: _timeFountainDTO.profiles.length * 2,
+          itemBuilder: (context, i) {
+            if (i.isOdd) return Divider();
 
-        final index = i ~/ 2;
-        if (index >= _timeFountainDTO.profiles.length + 1) {
-          return null;
-        }
-        return ListTile(
-          title: Text(index == 0 ? 'Default Profile' : 'Profile $index',
+            final index = i ~/ 2;
+            if (index >= _timeFountainDTO.profiles.length) {
+              return null;
+            }
+            return ListTile(
+              title: Text(
+                'Profile $index',
               ),
-          trailing: index != 0 ? _buildItemMenu(index) : null,
-          onTap: () {
-            _makeProfileActive(index);
+              trailing: _buildItemMenu(index),
+              onTap: () {
+                _makeProfileActive(index);
+              },
+            );
           },
-        );
-      },
+        ))
+      ],
     ));
   }
 
@@ -337,6 +371,9 @@ class ControlState extends State<ControlScreen> {
                   child: new ListTile(title: Text('Calibrate')))
               : null,
           PopupMenuItem(
+              value: 'reset',
+              child: new ListTile(title: Text('Reset Profile'))),
+          PopupMenuItem(
               value: 'disconnect',
               child: new ListTile(title: Text('Disconnect')))
         ];
@@ -346,6 +383,15 @@ class ControlState extends State<ControlScreen> {
           await Navigator.of(context).push(MaterialPageRoute(
               builder: (context) => new CalibrationScreen(_communicator)));
           _makeProfileActive(-1);
+        } else if (value == 'reset') {
+          ProfileDTO profile = new ProfileDTO();
+          profile.colorConfigurationDTO.add(new ColorConfigurationDTO(
+              Color(0xFFFFFFFF), 0.0, 0.0, 0.0, ColorBehaviour.linear, 1500));
+          _communicator.send('set profile $profile', (response) {
+            setState(() {
+              _timeFountainDTO.activeProfile = _getProfileFromString(response);
+            });
+          });
         } else if (value == 'disconnect') {
           Navigator.of(context).pop();
         }

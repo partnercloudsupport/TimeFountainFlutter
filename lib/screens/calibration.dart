@@ -7,17 +7,16 @@ class CalibrationScreen extends StatefulWidget {
   final BluetoothCommunicator _communicator;
   CalibrationScreen(this._communicator);
   @override
-  CalibrationState createState() => new CalibrationState(_communicator);
+  CalibrationState createState() => new CalibrationState();
 }
 
 class CalibrationState extends State<CalibrationScreen> {
-  final BluetoothCommunicator _communicator;
   int _motorDuty = 0;
   double _baseFrequency = 50.0;
 
   bool _loading;
 
-  CalibrationState(this._communicator) : _loading = true;
+  CalibrationState() : _loading = true;
 
   @override
   void initState() {
@@ -26,13 +25,13 @@ class CalibrationState extends State<CalibrationScreen> {
     ProfileDTO profile = new ProfileDTO();
     profile.colorConfigurationDTO.add(new ColorConfigurationDTO(
         Color(0xFFFFFFFF), 0.0, 0.0, 0.0, ColorBehaviour.linear, 1500));
-    _communicator.send('set profile $profile', (_) {
-      _communicator.send('get motorduty', (strMotorDuty) {
+    widget._communicator.send('set profile $profile', (_) {
+      widget._communicator.send('get motorduty', (strMotorDuty) {
         int duty = int.tryParse(strMotorDuty);
         if (duty == null) {
           return;
         }
-        _communicator.send('get frequency', (strBaseFrequency) {
+        widget._communicator.send('get frequency', (strBaseFrequency) {
           double frequency = double.tryParse(strBaseFrequency);
           if (frequency == null) {
             return;
@@ -78,7 +77,7 @@ class CalibrationState extends State<CalibrationScreen> {
               },
               onChangeEnd: (value) {
                 int duty = (value * 255.0).round();
-                _communicator.send('set motorduty $duty', (_) {
+                widget._communicator.send('set motorduty $duty', (_) {
                   setState(() {
                     _motorDuty = duty;
                   });
@@ -102,7 +101,7 @@ class CalibrationState extends State<CalibrationScreen> {
                     onChanged: (value) {
                       double frequency = double.tryParse(value);
                       if (frequency != null) {
-                        _communicator.send('set frequency $frequency', (_) {});
+                        widget._communicator.send('set frequency $frequency', (_) {});
                         _baseFrequency = frequency;
                       }
                     },

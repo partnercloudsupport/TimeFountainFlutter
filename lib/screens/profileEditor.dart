@@ -9,24 +9,21 @@ import '../widgets/outlinedRaindrop.dart';
 class ProfileEditorScreen extends StatefulWidget {
   final BluetoothCommunicator _communicator;
   final TimeFountainDTO _timeFountainDTO;
-  final int index;
+  final int _profileIndex;
 
-  ProfileEditorScreen(this._communicator, this._timeFountainDTO, this.index);
+  ProfileEditorScreen(this._communicator, this._timeFountainDTO, this._profileIndex);
 
   @override
   ProfileState createState() =>
-      new ProfileState(_communicator, _timeFountainDTO, index);
+      new ProfileState();
 }
 
 class ProfileState extends State<ProfileEditorScreen> {
-  final BluetoothCommunicator _communicator;
-  final TimeFountainDTO timeFountainDTO;
-  final int profileIndex;
 
-  ProfileState(this._communicator, this.timeFountainDTO, this.profileIndex);
+  ProfileState();
 
   ProfileDTO getProfile() {
-    return timeFountainDTO.profiles.elementAt(profileIndex);
+    return widget._timeFountainDTO.profiles.elementAt(widget._profileIndex);
   }
 
   @override
@@ -37,7 +34,7 @@ class ProfileState extends State<ProfileEditorScreen> {
   }
 
   void _update() {
-    _communicator.send('set profile ${getProfile()}', (String response) {});
+    widget._communicator.send('set profile ${getProfile()}', (String response) {});
   }
 
   void _addColorConfiguration() {
